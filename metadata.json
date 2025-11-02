@@ -1,0 +1,5 @@
+
+{
+  "name": "LaghuGuru Analyzer",
+  "description": "An application to analyze Kannada poetry for Laghu (short) and Guru (long) syllables based on prosody rules, with options to view patterns, highlight syllables, and export the analysis."
+}
