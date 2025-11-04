@@ -48,11 +48,11 @@ const reformatTextForDisplay = (text: string, maxLineLength: number = 70): strin
 
 
 const App: React.FC = () => {
-  const [poemText, setPoemText] = useState<string>('ರೀ ರಾಮಾಯಣ ದರ್ಶನಂ ಕೃತಜ್ಞತೆಗಳು ರಾಷ್ಟ್ರಕವಿ ಕುವೆಂಪು ಅವರ ಮಹಾಕಾವಯ ‘ಶ್ರೀರಾಮಾಯಣದರ್ಶನಂ’ ಕನನಡ ಸಾರಸ್ವತ ಪರಪಂಚದ ಮಹಾಸಿದ್ಧಿಗಳಲ್ಲಿ ಒಂದು.');
+  const [poemText, setPoemText] = useState<string>("ರೀ ರಾಮಾಯಣ ದರ್ಶನಂ ಕೃತಜ್ಞತೆಗಳು ರಾಷ್ಟ್ರಕವಿ ಕುವೆಂಪು ಅವರ ಮಹಾಕಾವಯ 'ಶ್ರೀರಾಮಾಯಣದರ್ಶನಂ' ಕನನಡ ಸಾರಸ್ವತ ಪರಪಂಚದ ಮಹಾಸಿದ್ಧಿಗಳಲ್ಲಿ ಒಂದು.");
   const [poemAnalysis, setPoemAnalysis] = useState<PoemAnalysis | null>(null);
   const [textStats, setTextStats] = useState<TextStatsAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('pattern');
+  const [viewMode, setViewMode] = useState<ViewMode>('highlight');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

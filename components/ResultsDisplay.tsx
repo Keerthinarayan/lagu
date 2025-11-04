@@ -15,15 +15,15 @@ type MainTab = 'prosody' | 'stats';
 type StatsTab = 'summary' | 'chars' | 'phrases';
 
 const StatCard: React.FC<{ label: string; value: number | string; colorClass: string; gradient?: string; icon?: React.ReactNode }> = ({ label, value, colorClass, gradient, icon }) => (
-    <div className={`relative bg-gradient-to-br ${gradient || 'from-slate-800/80 to-slate-900/80'} p-5 rounded-xl border ${colorClass} shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden group`}>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-white/10 transition-all"></div>
+    <div className={`relative bg-gradient-to-br ${gradient || 'from-slate-800/80 to-slate-900/80'} p-4 sm:p-5 rounded-xl border ${colorClass} shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden group`}>
+        <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 bg-white/5 rounded-full blur-2xl -mr-10 sm:-mr-12 -mt-10 sm:-mt-12 group-hover:bg-white/10 transition-all"></div>
         <div className="relative z-10">
             <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-400 mb-1 uppercase tracking-wide">{label}</p>
-                    <p className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">{value}</p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-400 mb-1 uppercase tracking-wide">{label}</p>
+                    <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">{value}</p>
                 </div>
-                {icon && <div className="text-slate-400/40 group-hover:text-slate-300/60 transition-colors">{icon}</div>}
+                {icon && <div className="text-slate-400/40 group-hover:text-slate-300/60 transition-colors hidden sm:block">{icon}</div>}
             </div>
         </div>
     </div>
@@ -35,7 +35,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
 
 
   const handleExport = () => {
-    let report = `LaghuGuru Analysis Report\n`;
+    let report = `Akshara Analysis Report\n`;
     report += `=========================\n\n`;
 
     report += `--- Prosody Analysis ---\n`;
@@ -79,35 +79,38 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
   };
   
   return (
-    <div className="mt-8 bg-slate-800/50 border border-slate-700 backdrop-blur-sm p-6 rounded-xl shadow-2xl">
-      <div className="flex flex-col sm:flex-row justify-between items-start mb-6 pb-4 border-b border-slate-600">
-        <div>
-             <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Analysis Report</h2>
-             <p className="text-slate-400">A detailed breakdown of your Kannada text.</p>
+    <div className="mt-6 sm:mt-8 space-y-4">
+      <div className="bg-slate-800/50 border border-slate-700 backdrop-blur-sm p-4 sm:p-6 rounded-xl shadow-2xl">
+        <div className="flex flex-col sm:flex-row justify-between items-start mb-4 sm:mb-6 pb-4 border-b border-slate-600 gap-3">
+          <div>
+               <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Analysis Report</h2>
+               <p className="text-sm sm:text-base text-slate-400">A detailed breakdown of your Kannada text.</p>
+          </div>
+          <button onClick={handleExport} className="w-full sm:w-auto px-4 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm font-semibold" title="Export Full Report as .txt">
+              <ExportIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-300"/>
+              <span>Export Report</span>
+          </button>
         </div>
-        <button onClick={handleExport} className="mt-4 sm:mt-0 px-4 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors flex items-center space-x-2 text-sm font-semibold" title="Export Full Report as .txt">
-            <ExportIcon className="w-5 h-5 text-slate-300"/>
-            <span>Export Report</span>
-        </button>
-      </div>
 
-      {/* Main Tab Navigation */}
-      <div className="mb-6 flex space-x-2 border-b border-slate-700">
-          <button
-            onClick={() => setMainTab('prosody')}
-            className={`flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors border-b-2 ${mainTab === 'prosody' ? 'text-amber-400 border-amber-400' : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-700/50'}`}
-          >
-            <ProsodyIcon className="w-5 h-5"/>
-            <span>Prosody Analysis</span>
-          </button>
-          <button
-             onClick={() => setMainTab('stats')}
-             className={`flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors border-b-2 ${mainTab === 'stats' ? 'text-amber-400 border-amber-400' : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-700/50'}`}
-          >
-            <StatsIcon className="w-5 h-5"/>
-            <span>Statistical Analysis</span>
-          </button>
-      </div>
+        {/* Main Tab Navigation */}
+        <div className="mb-4 sm:mb-6 flex space-x-1 sm:space-x-2 border-b border-slate-700 overflow-x-auto">
+            <button
+              onClick={() => setMainTab('prosody')}
+              className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-t-lg transition-colors border-b-2 whitespace-nowrap ${mainTab === 'prosody' ? 'text-amber-400 border-amber-400' : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-700/50'}`}
+            >
+              <ProsodyIcon className="w-4 h-4 sm:w-5 sm:h-5"/>
+              <span className="hidden xs:inline">Prosody Analysis</span>
+              <span className="xs:hidden">Prosody</span>
+            </button>
+            <button
+               onClick={() => setMainTab('stats')}
+               className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-t-lg transition-colors border-b-2 whitespace-nowrap ${mainTab === 'stats' ? 'text-amber-400 border-amber-400' : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-700/50'}`}
+            >
+              <StatsIcon className="w-4 h-4 sm:w-5 sm:h-5"/>
+              <span className="hidden xs:inline">Statistical Analysis</span>
+              <span className="xs:hidden">Statistics</span>
+            </button>
+        </div>
 
       {/* Main Content Area */}
       <div>
@@ -138,62 +141,62 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
                       }
                     />
                 </div>
-                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-slate-900/60 to-slate-800/60 rounded-xl border border-slate-700/50 backdrop-blur-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg flex items-center justify-center border border-amber-500/30">
-                        <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex justify-between items-center p-3 sm:p-4 bg-gradient-to-r from-slate-900/60 to-slate-800/60 rounded-xl border border-slate-700/50 backdrop-blur-sm gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg flex items-center justify-center border border-amber-500/30 flex-shrink-0">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                           <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <h3 className="text-lg font-bold text-slate-200">Prosody Details</h3>
+                      <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-200 truncate">Prosody Details</h3>
                     </div>
-                    <div className="bg-slate-900/60 p-1.5 rounded-lg flex space-x-1 border border-slate-700/50 shadow-inner">
+                    <div className="bg-slate-900/60 p-1 sm:p-1.5 rounded-lg flex space-x-1 border border-slate-700/50 shadow-inner flex-shrink-0">
                         <button 
                             onClick={() => setViewMode('pattern')}
-                            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-300 flex items-center gap-2 ${viewMode === 'pattern' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg scale-105' : 'text-slate-300 hover:bg-slate-700/70 hover:text-white'}`}>
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-md transition-all duration-300 flex items-center gap-1 sm:gap-2 ${viewMode === 'pattern' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg scale-105' : 'text-slate-300 hover:bg-slate-700/70 hover:text-white'}`}>
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
                             </svg>
-                            Pattern
+                            <span className="hidden xs:inline">Pattern</span>
                         </button>
                         <button 
                             onClick={() => setViewMode('highlight')}
-                            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-300 flex items-center gap-2 ${viewMode === 'highlight' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg scale-105' : 'text-slate-300 hover:bg-slate-700/70 hover:text-white'}`}>
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-md transition-all duration-300 flex items-center gap-1 sm:gap-2 ${viewMode === 'highlight' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg scale-105' : 'text-slate-300 hover:bg-slate-700/70 hover:text-white'}`}>
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                             </svg>
-                            Highlight
+                            <span className="hidden xs:inline">Highlight</span>
                         </button>
                     </div>
                 </div>
-                <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                <div className="space-y-3 sm:space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-1 sm:pr-2">
                     {poemAnalysis.lines.map((line) => (
-                    <div key={line.lineNumber} className="relative bg-gradient-to-br from-slate-900/70 to-slate-800/70 p-6 rounded-xl border border-slate-700/50 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-slate-600/70 hover:scale-[1.01] group/line overflow-hidden">
+                    <div key={line.lineNumber} className="relative bg-gradient-to-br from-slate-900/70 to-slate-800/70 p-4 sm:p-5 md:p-6 rounded-xl border border-slate-700/50 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-slate-600/70 hover:scale-[1.01] group/line overflow-hidden">
                         {/* Decorative corner accent */}
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-500/10 to-transparent rounded-bl-full"></div>
+                        <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-amber-500/10 to-transparent rounded-bl-full"></div>
                         
                         <div className="relative z-10">
-                          <div className="flex items-center gap-3 mb-4">
-                            <span className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-br from-amber-500/30 to-orange-500/30 border border-amber-500/40 rounded-lg font-bold text-amber-300 text-sm">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <span className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-amber-500/30 to-orange-500/30 border border-amber-500/40 rounded-lg font-bold text-amber-300 text-xs sm:text-sm">
                               {line.lineNumber}
                             </span>
                             <div className="flex-1 h-px bg-gradient-to-r from-slate-600 via-slate-500 to-transparent"></div>
                           </div>
                           {viewMode === 'pattern' ? (
                               <>
-                                  <p className="font-kannada text-xl mb-4 text-slate-100 leading-relaxed">{line.originalText}</p>
-                                  <div className="bg-gradient-to-br from-slate-950/80 to-slate-900/80 p-4 rounded-lg border border-slate-700/50 shadow-inner">
-                                    <p className="font-mono text-base text-amber-300 tracking-widest whitespace-pre-wrap leading-relaxed">{line.pattern}</p>
+                                  <p className="font-kannada text-base sm:text-lg md:text-xl mb-3 sm:mb-4 text-slate-100 leading-relaxed">{line.originalText}</p>
+                                  <div className="bg-gradient-to-br from-slate-950/80 to-slate-900/80 p-3 sm:p-4 rounded-lg border border-slate-700/50 shadow-inner">
+                                    <p className="font-mono text-sm sm:text-base text-amber-300 tracking-wide sm:tracking-widest whitespace-pre-wrap leading-relaxed">{line.pattern}</p>
                                   </div>
                               </>
                           ) : (
                               <div>
-                                  <div className="font-kannada text-2xl flex flex-wrap items-center gap-3 bg-gradient-to-br from-slate-950/80 to-slate-900/80 p-4 rounded-lg border border-slate-700/50 shadow-inner">
+                                  <div className="font-kannada text-lg sm:text-xl md:text-2xl flex flex-wrap items-center gap-2 sm:gap-3 bg-gradient-to-br from-slate-950/80 to-slate-900/80 p-3 sm:p-4 rounded-lg border border-slate-700/50 shadow-inner">
                                       {line.words.map((word, wordIndex) => (
-                                          <div key={wordIndex} className="flex flex-wrap items-center gap-1 bg-slate-800/40 px-2 py-1 rounded-lg border border-slate-700/30">
+                                          <div key={wordIndex} className="flex flex-wrap items-center gap-0.5 sm:gap-1 bg-slate-800/40 px-1.5 sm:px-2 py-1 rounded-lg border border-slate-700/30">
                                               {word.syllables.map((syllable, i) => (
-                                                  <span key={i} className={`px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 hover:scale-110 ${
+                                                  <span key={i} className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 hover:scale-110 ${
                                                       syllable.type === 'L' 
                                                         ? 'text-blue-200 bg-gradient-to-br from-blue-600/40 to-blue-700/40 border border-blue-500/50 shadow-lg shadow-blue-500/20' 
                                                         : 'text-green-200 bg-gradient-to-br from-green-600/40 to-green-700/40 border border-green-500/50 shadow-lg shadow-green-500/20'
@@ -204,14 +207,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
                                           </div>
                                       ))}
                                   </div>
-                                  <div className="mt-4 flex items-center justify-end gap-6 text-sm">
-                                      <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-900/30 rounded-lg border border-blue-500/30">
-                                          <span className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-blue-300 shadow-lg shadow-blue-500/50"></span>
-                                          <span className="font-semibold text-blue-300">Laghu (ಲ)</span>
+                                  <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4 md:gap-6 text-xs sm:text-sm">
+                                      <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-blue-900/30 rounded-lg border border-blue-500/30">
+                                          <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-blue-300 shadow-lg shadow-blue-500/50 flex-shrink-0"></span>
+                                          <span className="font-semibold text-blue-300 whitespace-nowrap">Laghu (ಲ)</span>
                                       </div>
-                                      <div className="flex items-center gap-2 px-3 py-1.5 bg-green-900/30 rounded-lg border border-green-500/30">
-                                          <span className="w-4 h-4 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-2 border-green-300 shadow-lg shadow-green-500/50"></span>
-                                          <span className="font-semibold text-green-300">Guru (ಗು)</span>
+                                      <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-green-900/30 rounded-lg border border-green-500/30">
+                                          <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-2 border-green-300 shadow-lg shadow-green-500/50 flex-shrink-0"></span>
+                                          <span className="font-semibold text-green-300 whitespace-nowrap">Guru (ಗು)</span>
                                       </div>
                                   </div>
                               </div>
@@ -421,6 +424,32 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
             </div>
         )}
       </div>
+    </div>
+    
+    {/* Disclaimer about accuracy - Below results */}
+    <div className="bg-gradient-to-r from-amber-900/20 via-orange-900/20 to-slate-900/30 border border-amber-500/30 rounded-xl p-3 sm:p-4 backdrop-blur-sm">
+      <div className="flex items-start gap-2 sm:gap-3">
+        <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-amber-500/30 to-orange-500/30 rounded-lg flex items-center justify-center border border-amber-500/40">
+          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs sm:text-sm font-bold text-amber-300 mb-1">⚠️ Analysis Accuracy Notice</h3>
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            This analysis may have approximately <span className="font-semibold text-amber-400">1% discrepancy</span> due to tokenization variations in Kannada text processing. For detailed information about Kannada text tokenization, please refer to our{' '}
+            <a 
+              href="/Kannada_Text_Tokenization_Research_Paper.pdf" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-amber-400 hover:text-amber-300 underline font-semibold transition-colors break-words"
+            >
+              paper
+            </a>.
+          </p>
+        </div>
+      </div>
+    </div>
     </div>
   );
 };
