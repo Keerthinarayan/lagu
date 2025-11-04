@@ -439,7 +439,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
             This analysis may have approximately <span className="font-semibold text-amber-400">1% discrepancy</span> due to tokenization variations in Kannada text processing. For detailed information about Kannada text tokenization, please refer to our{' '}
             <a 
-              href="/Kannada_Text_Tokenization_Research_Paper.pdf" 
+              href="public/Kannada_Text_Tokenization_Research_Paper.pdf" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-amber-400 hover:text-amber-300 underline font-semibold transition-colors break-words"
