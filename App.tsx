@@ -48,7 +48,12 @@ const reformatTextForDisplay = (text: string, maxLineLength: number = 70): strin
 
 
 const App: React.FC = () => {
-  const [poemText, setPoemText] = useState<string>(" ಜನಪನಂಘಿಗೆ ಮಣಿದು ಕೈ ಮುಗಿ ದೆನಗೆ ಬೆಸಸೈ ಬೊಪ್ಪ ತಾ ಬ ಲ್ಲೆನು ಮಹಾಹವದೊಳಗೆ ಪದ್ಮವ್ಯೂಹ ಭೇದನವ ಅನುವರವ ಗೆಲುವೆನು ಕೃತಾಂತನ ಮನೆಗೆ ಕಳುಹುವೆನಹಿತರನು ನೀ ನಿನಿತು ಚಿಂತಿಸಲೇಕೆ ಕಾಳಗಕೆನ್ನ ಕಳುಹೆಂದ.");
+const [poemText, setPoemText] = useState<string>(`ಜನಪನಂಘಿಗೆ ಮಣಿದು ಕೈ ಮುಗಿ
+ದೆನಗೆ ಬೆಸಸೈ ಬೊಪ್ಪ ತಾ ಬ
+ಲ್ಲೆನು ಮಹಾಹವದೊಳಗೆ ಪದ್ಮವ್ಯೂಹ ಭೇದನವ
+ಅನುವರವ ಗೆಲುವೆನು ಕೃತಾಂತನ
+ಮನೆಗೆ ಕಳುಹುವೆನಹಿತರನು ನೀ
+ನಿನಿತು ಚಿಂತಿಸಲೇಕೆ ಕಾಳಗಕೆನ್ನ ಕಳುಹೆಂದ.`);
   const [poemAnalysis, setPoemAnalysis] = useState<PoemAnalysis | null>(null);
   const [textStats, setTextStats] = useState<TextStatsAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
