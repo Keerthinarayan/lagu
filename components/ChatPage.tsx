@@ -1,7 +1,37 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { ChatMessage, sendChatMessage, isChatAvailable } from '../services/chatService';
+import { sendGroqChatMessage, isGroqChatAvailable } from '../services/groqChatService';
 
-const chatEnabled = isChatAvailable();
+interface ChatProvider {
+  id: 'gemini' | 'groq';
+  name: string;
+  available: boolean;
+  send: (history: ChatMessage[], newMessage: string, documentText?: string) => Promise<string>;
+  envVar: string;
+  signupUrl: string;
+  signupLabel: string;
+}
+
+const CHAT_PROVIDERS: ChatProvider[] = [
+  {
+    id: 'gemini',
+    name: 'Gemini',
+    available: isChatAvailable(),
+    send: sendChatMessage,
+    envVar: 'GEMINI_API_KEY',
+    signupUrl: 'https://aistudio.google.com/apikey',
+    signupLabel: 'aistudio.google.com/apikey',
+  },
+  {
+    id: 'groq',
+    name: 'Groq (Llama 3.3)',
+    available: isGroqChatAvailable(),
+    send: sendGroqChatMessage,
+    envVar: 'GROQ_API_KEY',
+    signupUrl: 'https://console.groq.com/keys',
+    signupLabel: 'console.groq.com/keys',
+  },
+];
 
 const BASE_SUGGESTIONS = [
   'ಸಂಧಿ ಎಂದರೇನು? ಉದಾಹರಣೆ ಕೊಡಿ.',
@@ -23,6 +53,12 @@ interface ChatPageProps {
 }
 
 const ChatPage: React.FC<ChatPageProps> = ({ poemText }) => {
+  const availableProviders = useMemo(() => CHAT_PROVIDERS.filter((p) => p.available), []);
+  const [providerId, setProviderId] = useState<ChatProvider['id']>(
+    () => availableProviders[0]?.id ?? 'gemini'
+  );
+  const activeProvider = CHAT_PROVIDERS.find((p) => p.id === providerId) ?? CHAT_PROVIDERS[0];
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +77,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ poemText }) => {
 
   const handleSend = useCallback(async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || isLoading) return;
+    if (!trimmed || isLoading || !activeProvider.available) return;
 
     setError(null);
     setInput('');
@@ -50,14 +86,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ poemText }) => {
     setIsLoading(true);
 
     try {
-      const reply = await sendChatMessage(history, trimmed, poemText);
+      const reply = await activeProvider.send(history, trimmed, poemText);
       setMessages((prev) => [...prev, { role: 'model', text: reply }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'An unknown error occurred.');
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, poemText]);
+  }, [messages, isLoading, poemText, activeProvider]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,8 +111,26 @@ const ChatPage: React.FC<ChatPageProps> = ({ poemText }) => {
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-neutral-900 font-kannada">ಅಕ್ಷರ ಗುರು</h2>
-          <p className="text-xs text-neutral-500">Kannada Grammar &amp; Prosody Tutor · Powered by Gemini</p>
+          <p className="text-xs text-neutral-500">Kannada Grammar &amp; Prosody Tutor · Powered by {activeProvider.name}</p>
         </div>
+
+        {/* Provider switcher — only shown when more than one provider has a key configured */}
+        {availableProviders.length > 1 && (
+          <div className="shrink-0 flex gap-0.5 p-0.5 bg-neutral-100 rounded-full border border-neutral-200">
+            {availableProviders.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setProviderId(p.id)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${
+                  p.id === providerId ? 'bg-white text-indigo-700 shadow-sm' : 'text-neutral-500 hover:text-neutral-800'
+                }`}
+              >
+                {p.id === 'gemini' ? 'Gemini' : 'Groq'}
+              </button>
+            ))}
+          </div>
+        )}
+
         {hasDocument && (
           <span
             title={isTruncated ? `Only the first ${MAX_CONTEXT_CHARS.toLocaleString()} characters of your text are used as context.` : 'Your loaded text is available as context for this chat.'}
@@ -90,15 +144,21 @@ const ChatPage: React.FC<ChatPageProps> = ({ poemText }) => {
         )}
       </div>
 
-      {!chatEnabled ? (
+      {availableProviders.length === 0 ? (
         <div className="flex-1 p-6 text-sm text-neutral-600 leading-relaxed overflow-y-auto custom-scrollbar flex items-center justify-center">
-          <div className="max-w-md text-center">
-            <p className="font-semibold text-neutral-900 mb-3 text-base">This chat needs a free Gemini API key</p>
-            <ol className="list-decimal list-inside space-y-2 text-left inline-block">
-              <li>Get a free key at <span className="font-mono text-indigo-600">aistudio.google.com/apikey</span></li>
-              <li>Set <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-indigo-600">GEMINI_API_KEY</code> in <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-indigo-600">.env.local</code></li>
-              <li>Restart <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-indigo-600">npm run dev</code></li>
-            </ol>
+          <div className="max-w-md">
+            <p className="font-semibold text-neutral-900 mb-3 text-base text-center">This chat needs at least one free API key</p>
+            <ul className="space-y-2">
+              {CHAT_PROVIDERS.map((p) => (
+                <li key={p.id}>
+                  <span className="font-medium text-neutral-800">{p.name}:</span> get a free key at{' '}
+                  <span className="font-mono text-indigo-600">{p.signupLabel}</span> and set{' '}
+                  <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-indigo-600">{p.envVar}</code> in{' '}
+                  <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-indigo-600">.env.local</code>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-neutral-400 text-center">Restart the dev server after adding a key.</p>
           </div>
         </div>
       ) : (
