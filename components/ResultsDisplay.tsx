@@ -409,9 +409,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-amber-700 mb-1">Analysis Accuracy Notice</h3>
           <p className="text-sm text-neutral-600 leading-relaxed">
-            This analysis may have approximately <span className="font-semibold text-amber-700">1% discrepancy</span> due to tokenization variations in Kannada text processing. For detailed information about Kannada text tokenization, please refer to our{' '}
+            This analysis may have approximately <span className="font-semibold text-amber-700">1% discrepancy</span> due to tokenization variations in Kannada text processing. For detailed information about Kannada text tokenization, please download the{' '}
             <a
-              href="/Kannada_Text_Tokenization_Research_Paper.pdf"
+              href="https://raw.githubusercontent.com/Keerthinarayan/lagu/main/public/Kannada_Text_Tokenization_Paper.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="text-indigo-600 hover:text-indigo-500 underline font-semibold transition-colors break-words"
