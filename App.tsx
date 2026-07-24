@@ -1,10 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { analyzePoem, analyzeTextStats } from './services/kannadaAnalyzer';
 import { parseFile } from './services/fileParser';
-import { PoemAnalysis, ViewMode, TextStatsAnalysis } from './types';
+import { PoemAnalysis, ViewMode, TextStatsAnalysis, Syllable } from './types';
 import Header from './components/Header';
 import InputArea from './components/InputArea';
 import ResultsDisplay from './components/ResultsDisplay';
+import AiAnalysisPage from './components/AiAnalysisPage';
+import NavBar, { Page } from './components/NavBar';
+import Footer from './components/Footer';
 
 // pdf.js worker setup
 declare const pdfjsLib: any;
@@ -54,6 +57,8 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<ViewMode>('highlight');
   const [error, setError] = useState<string | null>(null);
+  const [progressMessage, setProgressMessage] = useState<string>('');
+  const [activePage, setActivePage] = useState<Page>('akshara');
 
   useEffect(() => {
     // Set the workerSrc for pdf.js. This is required for it to work correctly.
@@ -90,6 +95,8 @@ const App: React.FC = () => {
 
         setPoemAnalysis(prosodyResult);
         setTextStats(statsResult);
+        // Jump to the report page so the user sees their results immediately.
+        setActivePage('report');
       } catch (e) {
         if (e instanceof Error) {
           setError(`An error occurred during analysis: ${e.message}`);
@@ -108,9 +115,10 @@ const App: React.FC = () => {
     setPoemAnalysis(null);
     setTextStats(null);
     setPoemText(''); // Clear previous text
+    setProgressMessage('Reading the file…');
 
     try {
-      const text = await parseFile(file);
+      const text = await parseFile(file, setProgressMessage);
       setPoemText(text);
     } catch (e) {
       if (e instanceof Error) {
@@ -120,73 +128,96 @@ const App: React.FC = () => {
       }
     } finally {
       setIsLoading(false);
+      setProgressMessage('');
     }
   }, []);
 
+  // Flatten the per-line syllables into a single ordered list for AI comparison.
+  const localSyllables: Syllable[] = poemAnalysis
+    ? poemAnalysis.lines.flatMap((line) => line.syllables)
+    : [];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 relative overflow-hidden">
-      {/* Sophisticated animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        
-        {/* Gradient orbs */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-amber-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-        <div className="absolute bottom-20 right-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-6000"></div>
-        
-        {/* Radial gradient overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.08),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(251,146,60,0.08),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(168,85,247,0.08),transparent_50%)]"></div>
-        
-        {/* Subtle noise texture */}
-        <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')]"></div>
-      </div>
-      
-      {/* Content */}
-      <div className="relative z-10 min-h-screen text-slate-200 flex flex-col items-center p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen bg-[#f5f5f3] text-neutral-900 flex flex-col">
+      <NavBar activePage={activePage} onNavigate={setActivePage} hasAnalysis={!!poemAnalysis} />
+
+      <div className="flex-1 w-full px-4 sm:px-6 md:px-8 pt-16 sm:pt-20">
         <div className="w-full max-w-4xl mx-auto">
-          <Header />
-          <main className="mt-8">
-          <InputArea
-            text={poemText}
-            setText={setPoemText}
-            onAnalyze={handleAnalyze}
-            onFileUpload={handleFileUpload}
-            isLoading={isLoading}
-          />
-          {error && (
-            <div className="mt-6 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400/40 text-orange-200 px-5 py-4 rounded-xl text-center backdrop-blur-sm shadow-lg shadow-orange-500/10 animate-fade-in">
-              <div className="flex items-center justify-center gap-2">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          {activePage === 'akshara' && <Header />}
+          <main className="mt-10 sm:mt-12">
+
+          {/* ---------- Akshara (input) page ---------- */}
+          {/* Pages stay mounted and are only hidden via CSS, so state inside
+              them (chat history, AI comparison results, report tab) survives
+              switching to another page and back. */}
+          <div className={activePage === 'akshara' ? 'animate-fade-in' : 'hidden'}>
+              <InputArea
+                text={poemText}
+                setText={setPoemText}
+                onAnalyze={handleAnalyze}
+                onFileUpload={handleFileUpload}
+                isLoading={isLoading}
+              />
+              {error && (
+                <div className="mt-6 bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl text-center animate-fade-in">
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {error}
+                  </div>
+                </div>
+              )}
+              {isLoading && (
+                <div className="flex justify-center items-center mt-8 p-10 bg-white rounded-2xl border border-neutral-200 shadow-sm">
+                    <svg className="animate-spin -ml-1 mr-3 h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-lg text-neutral-700 font-medium text-center">{progressMessage || 'Processing your text...'}</p>
+                </div>
+              )}
+          </div>
+
+          {/* ---------- Analysis Report page ---------- */}
+          <div className={activePage === 'report' ? '' : 'hidden'}>
+            {poemAnalysis && textStats ? (
+              <ResultsDisplay
+                poemAnalysis={poemAnalysis}
+                textStats={textStats}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+              />
+            ) : (
+              <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-12 text-center animate-fade-in">
+                <svg className="w-14 h-14 text-neutral-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                {error}
+                <p className="text-neutral-500 mb-6">No analysis yet. Enter or upload Kannada text to see the report.</p>
+                <button
+                  onClick={() => setActivePage('akshara')}
+                  className="px-6 py-3 bg-neutral-900 text-white font-semibold rounded-full hover:bg-neutral-700 transition-all"
+                >
+                  Go to Analyze
+                </button>
               </div>
-            </div>
-          )}
-          {isLoading && !poemAnalysis && (
-             <div className="flex justify-center items-center mt-8 p-10 bg-gradient-to-br from-slate-800/60 to-slate-900/60 rounded-2xl backdrop-blur-md border border-slate-700/50 shadow-2xl">
-                <svg className="animate-spin -ml-1 mr-3 h-10 w-10 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <p className="text-xl text-slate-200 font-medium">Processing your text...</p>
-            </div>
-          )}
-          {poemAnalysis && textStats && !isLoading && (
-            <ResultsDisplay
-              poemAnalysis={poemAnalysis}
-              textStats={textStats}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
+            )}
+          </div>
+
+          {/* ---------- AI Analysis page (Compare + Chat) ---------- */}
+          <div className={activePage === 'ai' ? '' : 'hidden'}>
+            <AiAnalysisPage
+              poemText={poemText}
+              localSyllables={localSyllables}
+              hasAnalysis={!!poemAnalysis}
+              onGoToInput={() => setActivePage('akshara')}
             />
-          )}
+          </div>
         </main>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

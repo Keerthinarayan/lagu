@@ -3,17 +3,14 @@ import React from 'react';
 const Header: React.FC = () => {
   return (
     <header className="text-center animate-fade-in px-2">
-      <div className="inline-block">
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 drop-shadow-2xl animate-gradient pb-2">
-          Akshara
-        </h1>
-        <div className="h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent rounded-full animate-shimmer"></div>
-      </div>
-      <p className="mt-3 sm:mt-4 text-lg sm:text-xl text-slate-300 font-kannada tracking-wide">
-        ಕನ್ನಡ ಛಂದಸ್ಸು ವಿಶ್ಲೇಷಕ
+      <p className="text-xs font-semibold tracking-[0.25em] uppercase text-neutral-400 mb-5">
+        Kannada Prosody · ಛಂದಸ್ಸು
       </p>
-      <p className="mt-2 text-xs sm:text-sm text-slate-500 px-4">
-        Advanced Kannada Prosody & Text Analysis Tool
+      <h1 className="font-kannada text-6xl sm:text-7xl md:text-8xl font-extrabold text-neutral-900 tracking-tight leading-none">
+        ಅಕ್ಷರ
+      </h1>
+      <p className="mt-5 text-lg sm:text-xl text-indigo-600 font-semibold">
+        Advanced Kannada Prosody &amp; Text Analysis
       </p>
     </header>
   );

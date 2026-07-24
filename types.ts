@@ -37,6 +37,10 @@ export interface TextStatsAnalysis {
   totalSentences: number;
   averageWordsPerSentence: number;
   averageWordLength: number;
+  wordLengthVariance: number;
+  wordLengthStdDev: number;
+  sentenceLengthVariance: number;
+  sentenceLengthStdDev: number;
   characterFrequency: { character: string; count: number }[];
   nGramFrequencies: {
     [n: number]: NGram[];

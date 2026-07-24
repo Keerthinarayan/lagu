@@ -22,20 +22,21 @@
       .font-kannada {
         font-family: 'Noto Sans Kannada', sans-serif;
       }
-      /* Custom scrollbar for the new theme */
+      /* Custom scrollbar for the light theme */
       .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
+        height: 8px;
       }
       .custom-scrollbar::-webkit-scrollbar-track {
-        background: #262626; /* neutral-800 */
+        background: #f0f0ee;
         border-radius: 10px;
       }
       .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #525252; /* neutral-600 */
+        background: #d4d4d4; /* neutral-300 */
         border-radius: 10px;
       }
       .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #737373; /* neutral-500 */
+        background: #a3a3a3; /* neutral-400 */
       }
       
       /* Beautiful blob animations */
@@ -82,9 +83,11 @@
   <!-- Libraries for file parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.18/mammoth.browser.min.js"></script>
+  <!-- Tesseract.js: OCR fallback for Kannada PDFs with broken/legacy font encoding or scanned pages -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-slate-900 text-slate-200">
+  <body class="bg-[#f5f5f3] text-neutral-900">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

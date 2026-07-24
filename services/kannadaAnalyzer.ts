@@ -167,17 +167,40 @@ export const analyzeTextStats = (text: string): TextStatsAnalysis => {
             totalSentences: 0,
             averageWordsPerSentence: 0,
             averageWordLength: 0,
+            wordLengthVariance: 0,
+            wordLengthStdDev: 0,
+            sentenceLengthVariance: 0,
+            sentenceLengthStdDev: 0,
             characterFrequency: [],
             nGramFrequencies: {},
         };
     }
-    
+
     // 2. Calculate basic stats
     const totalWords = words.length;
     const totalSentences = sentences.length > 0 ? sentences.length : 1; // Avoid division by zero
     const averageWordsPerSentence = parseFloat((totalWords / totalSentences).toFixed(2));
     const totalWordLength = words.reduce((acc, word) => acc + word.length, 0);
     const averageWordLength = parseFloat((totalWordLength / totalWords).toFixed(2));
+
+    // Population variance/std dev of word length (character count per word).
+    const rawAverageWordLength = totalWordLength / totalWords;
+    const wordLengthVarianceRaw = words.reduce((acc, word) => acc + (word.length - rawAverageWordLength) ** 2, 0) / totalWords;
+    const wordLengthVariance = parseFloat(wordLengthVarianceRaw.toFixed(2));
+    const wordLengthStdDev = parseFloat(Math.sqrt(wordLengthVarianceRaw).toFixed(2));
+
+    // Population variance/std dev of sentence length (word count per sentence).
+    const sentenceWordCounts = sentences.map(
+        s => s.replace(/[।॥.,!?;:()\[\]{}"'“”‘’]/g, ' ').split(/\s+/).filter(w => w.length > 0).length
+    ).filter(count => count > 0);
+    const rawAverageWordsPerSentence = sentenceWordCounts.length > 0
+        ? sentenceWordCounts.reduce((a, b) => a + b, 0) / sentenceWordCounts.length
+        : 0;
+    const sentenceLengthVarianceRaw = sentenceWordCounts.length > 0
+        ? sentenceWordCounts.reduce((acc, count) => acc + (count - rawAverageWordsPerSentence) ** 2, 0) / sentenceWordCounts.length
+        : 0;
+    const sentenceLengthVariance = parseFloat(sentenceLengthVarianceRaw.toFixed(2));
+    const sentenceLengthStdDev = parseFloat(Math.sqrt(sentenceLengthVarianceRaw).toFixed(2));
 
     // 3. Count frequency of every Kannada character
     const charMap = new Map<string, number>();
@@ -221,6 +244,10 @@ export const analyzeTextStats = (text: string): TextStatsAnalysis => {
         totalSentences,
         averageWordsPerSentence,
         averageWordLength,
+        wordLengthVariance,
+        wordLengthStdDev,
+        sentenceLengthVariance,
+        sentenceLengthStdDev,
         characterFrequency,
         nGramFrequencies,
     };
