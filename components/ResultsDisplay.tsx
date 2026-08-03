@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PoemAnalysis, ViewMode, TextStatsAnalysis } from '../types';
+import { PoemAnalysis, ViewMode, TextStatsAnalysis, NGram } from '../types';
 import ExportIcon from './icons/ExportIcon';
 import ProsodyIcon from './icons/ProsodyIcon';
 import StatsIcon from './icons/StatsIcon';
@@ -31,7 +31,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
     ? textStats.characterFrequency.filter(({ character }) => character === charSearch.trim())
     : textStats.characterFrequency;
 
-  const filteredNGramEntries = Object.entries(textStats.nGramFrequencies)
+  const filteredWordLengthEntries = (Object.entries(textStats.wordLengthFrequencies) as [string, NGram[]][])
+    .map(([n, words]) => {
+      const filtered = phraseSearch.trim()
+        ? words.filter((g) => g.phrase.includes(phraseSearch.trim()))
+        : words;
+      return [n, filtered] as const;
+    })
+    .filter(([, words]) => words.length > 0);
+
+  const filteredNGramEntries = (Object.entries(textStats.nGramFrequencies) as [string, NGram[]][])
     .map(([n, ngrams]) => {
       const filtered = phraseSearch.trim()
         ? ngrams.filter((g) => g.phrase.includes(phraseSearch.trim()))
@@ -65,9 +74,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
     });
     report += `\n`;
 
-    report += `Common Phrases & Word Frequency:\n`;
-    Object.entries(textStats.nGramFrequencies).forEach(([n, ngrams]) => {
-        const title = n === '1' ? 'Word Frequency (Top 20)' : `Top ${n}-Word Phrases`;
+    report += `Word Frequency by Letter (Akshara) Count:\n`;
+    (Object.entries(textStats.wordLengthFrequencies) as [string, NGram[]][]).forEach(([n, words]) => {
+        report += `Words with ${n} Letter${n === '1' ? '' : 's'}:\n`;
+        words.forEach(word => {
+            report += `  - "${word.phrase}" (Count: ${word.count})\n`;
+        });
+    });
+    report += `\n`;
+
+    report += `Common Phrases:\n`;
+    (Object.entries(textStats.nGramFrequencies) as [string, NGram[]][]).forEach(([n, ngrams]) => {
+        const title = `Top ${n}-Word Phrases`;
         report += `${title}:\n`;
         ngrams.forEach(ngram => {
             report += `  - "${ngram.phrase}" (Count: ${ngram.count})\n`;
@@ -345,41 +363,77 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ poemAnalysis, textStats
                       </div>
 
                       <div className="bg-neutral-50 rounded-xl border border-neutral-200 max-h-96 overflow-y-auto custom-scrollbar p-5 space-y-6">
-                          {filteredNGramEntries.length > 0 ? (
-                              filteredNGramEntries.map(([n, ngrams]) => {
-                                  const subTitle = n === '1' ? 'Word Frequency' : `Top ${n}-Word Phrases`;
-                                  return (
-                                      <div key={n} className="space-y-3">
-                                          <h5 className="text-sm font-bold text-neutral-700 uppercase tracking-wide">{subTitle}</h5>
-                                          <ul className="space-y-2">
-                                              {ngrams.map((ngram, index) => {
-                                                  const maxCount = Math.max(...ngrams.map(g => g.count));
-                                                  const percentage = (ngram.count / maxCount) * 100;
-                                                  return (
-                                                      <li key={index} className="flex items-center justify-between gap-4 bg-white border border-neutral-200 p-3 rounded-lg">
-                                                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-500">
-                                                                  {index + 1}
-                                                              </span>
-                                                              <span className="font-kannada text-base text-neutral-800 truncate font-medium">
-                                                                  "{ngram.phrase}"
-                                                              </span>
-                                                          </div>
-                                                          <div className="flex items-center gap-3 flex-shrink-0">
-                                                              <div className="hidden sm:block w-24 bg-neutral-200 rounded-full h-2 overflow-hidden">
-                                                                  <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                          {(filteredWordLengthEntries.length > 0 || filteredNGramEntries.length > 0) ? (
+                              <>
+                                  {filteredWordLengthEntries.map(([n, wordsInGroup]) => {
+                                      const subTitle = `Words with ${n} Letter${n === '1' ? '' : 's'}`;
+                                      return (
+                                          <div key={`len-${n}`} className="space-y-3">
+                                              <h5 className="text-sm font-bold text-neutral-700 uppercase tracking-wide">{subTitle}</h5>
+                                              <ul className="space-y-2">
+                                                  {wordsInGroup.map((word, index) => {
+                                                      const maxCount = Math.max(...wordsInGroup.map(g => g.count));
+                                                      const percentage = (word.count / maxCount) * 100;
+                                                      return (
+                                                          <li key={index} className="flex items-center justify-between gap-4 bg-white border border-neutral-200 p-3 rounded-lg">
+                                                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-500">
+                                                                      {index + 1}
+                                                                  </span>
+                                                                  <span className="font-kannada text-base text-neutral-800 truncate font-medium">
+                                                                      "{word.phrase}"
+                                                                  </span>
                                                               </div>
-                                                              <span className="font-mono font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-sm border border-indigo-200">
-                                                                  ×{ngram.count}
-                                                              </span>
-                                                          </div>
-                                                      </li>
-                                                  );
-                                              })}
-                                          </ul>
-                                      </div>
-                                  );
-                              })
+                                                              <div className="flex items-center gap-3 flex-shrink-0">
+                                                                  <div className="hidden sm:block w-24 bg-neutral-200 rounded-full h-2 overflow-hidden">
+                                                                      <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                                                                  </div>
+                                                                  <span className="font-mono font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-sm border border-indigo-200">
+                                                                      ×{word.count}
+                                                                  </span>
+                                                              </div>
+                                                          </li>
+                                                      );
+                                                  })}
+                                              </ul>
+                                          </div>
+                                      );
+                                  })}
+                                  {filteredNGramEntries.map(([n, ngrams]) => {
+                                      const subTitle = `Top ${n}-Word Phrases`;
+                                      return (
+                                          <div key={`ngram-${n}`} className="space-y-3">
+                                              <h5 className="text-sm font-bold text-neutral-700 uppercase tracking-wide">{subTitle}</h5>
+                                              <ul className="space-y-2">
+                                                  {ngrams.map((ngram, index) => {
+                                                      const maxCount = Math.max(...ngrams.map(g => g.count));
+                                                      const percentage = (ngram.count / maxCount) * 100;
+                                                      return (
+                                                          <li key={index} className="flex items-center justify-between gap-4 bg-white border border-neutral-200 p-3 rounded-lg">
+                                                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-500">
+                                                                      {index + 1}
+                                                                  </span>
+                                                                  <span className="font-kannada text-base text-neutral-800 truncate font-medium">
+                                                                      "{ngram.phrase}"
+                                                                  </span>
+                                                              </div>
+                                                              <div className="flex items-center gap-3 flex-shrink-0">
+                                                                  <div className="hidden sm:block w-24 bg-neutral-200 rounded-full h-2 overflow-hidden">
+                                                                      <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                                                                  </div>
+                                                                  <span className="font-mono font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-sm border border-indigo-200">
+                                                                      ×{ngram.count}
+                                                                  </span>
+                                                              </div>
+                                                          </li>
+                                                      );
+                                                  })}
+                                              </ul>
+                                          </div>
+                                      );
+                                  })}
+                              </>
                           ) : (
                               <div className="flex flex-col items-center justify-center p-8 text-center">
                                   <svg className="w-14 h-14 text-neutral-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

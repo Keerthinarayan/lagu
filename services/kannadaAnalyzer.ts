@@ -151,6 +151,12 @@ export const analyzePoem = (text: string): PoemAnalysis => {
     return { lines: analyzedLines, totalLaghu, totalGuru };
 };
 
+// Sentence-terminating punctuation: Kannada danda/double-danda (।॥), their ASCII
+// stand-ins (| and ||, matched by the `+` quantifier below), and ./?/!.
+const SENTENCE_TERMINATOR_REGEX = /[।॥.!?|]+/g;
+// Punctuation to strip out when tokenizing words (superset of the sentence terminators).
+const WORD_PUNCTUATION_REGEX = /[।॥.,!?;:()\[\]{}"'“”‘’|]/g;
+
 /**
  * Performs statistical analysis on a given Kannada text.
  * @param text - The full Kannada text as a string.
@@ -158,8 +164,8 @@ export const analyzePoem = (text: string): PoemAnalysis => {
  */
 export const analyzeTextStats = (text: string): TextStatsAnalysis => {
     // 1. Tokenize sentences and words
-    const sentences = text.split(/[।॥.]+/g).filter(s => s.trim().length > 0);
-    const words = text.replace(/[।॥.,!?;:()\[\]{}"'“”‘’]/g, ' ').split(/\s+/).filter(w => w.length > 0);
+    const sentences = text.split(SENTENCE_TERMINATOR_REGEX).filter(s => s.trim().length > 0);
+    const words = text.replace(WORD_PUNCTUATION_REGEX, ' ').split(/\s+/).filter(w => w.length > 0);
     
     if (words.length === 0) {
         return {
@@ -172,6 +178,7 @@ export const analyzeTextStats = (text: string): TextStatsAnalysis => {
             sentenceLengthVariance: 0,
             sentenceLengthStdDev: 0,
             characterFrequency: [],
+            wordLengthFrequencies: {},
             nGramFrequencies: {},
         };
     }
@@ -191,7 +198,7 @@ export const analyzeTextStats = (text: string): TextStatsAnalysis => {
 
     // Population variance/std dev of sentence length (word count per sentence).
     const sentenceWordCounts = sentences.map(
-        s => s.replace(/[।॥.,!?;:()\[\]{}"'“”‘’]/g, ' ').split(/\s+/).filter(w => w.length > 0).length
+        s => s.replace(WORD_PUNCTUATION_REGEX, ' ').split(/\s+/).filter(w => w.length > 0).length
     ).filter(count => count > 0);
     const rawAverageWordsPerSentence = sentenceWordCounts.length > 0
         ? sentenceWordCounts.reduce((a, b) => a + b, 0) / sentenceWordCounts.length
@@ -215,23 +222,43 @@ export const analyzeTextStats = (text: string): TextStatsAnalysis => {
         .map(([character, count]) => ({ character, count }))
         .sort((a, b) => a.character.localeCompare(b.character, 'kn')); // Sort alphabetically
 
-    // 4. Calculate N-gram frequencies (from 1-gram to 15-grams)
+    // 4. Word frequency grouped by syllable (akshara) count: 1-letter words, 2-letter words, etc.
+    const wordCounts = new Map<string, number>();
+    words.forEach(word => wordCounts.set(word, (wordCounts.get(word) || 0) + 1));
+
+    const wordsBySyllableLength = new Map<number, Map<string, number>>();
+    wordCounts.forEach((count, word) => {
+        const syllableCount = syllabify(word).length;
+        if (syllableCount === 0) return; // skip words with no recognizable Kannada aksharas
+        if (!wordsBySyllableLength.has(syllableCount)) {
+            wordsBySyllableLength.set(syllableCount, new Map());
+        }
+        wordsBySyllableLength.get(syllableCount)!.set(word, count);
+    });
+
+    const wordLengthFrequencies: { [syllableCount: number]: NGram[] } = {};
+    Array.from(wordsBySyllableLength.keys())
+        .sort((a, b) => a - b)
+        .forEach(syllableCount => {
+            wordLengthFrequencies[syllableCount] = Array.from(wordsBySyllableLength.get(syllableCount)!.entries())
+                .sort((a, b) => b[1] - a[1]) // Sort by count descending
+                .map(([phrase, count]) => ({ phrase, count }));
+        });
+
+    // 5. Calculate N-gram (multi-word phrase) frequencies, from 2-word to 15-word phrases
     const nGramFrequencies: { [n: number]: NGram[] } = {};
-    // FIX: Start loop from n=1 to include single word frequencies
-    for (let n = 1; n <= 15; n++) {
+    for (let n = 2; n <= 15; n++) {
         if (words.length < n) break;
-        
+
         const ngrams = new Map<string, number>();
         for (let i = 0; i <= words.length - n; i++) {
             const phrase = words.slice(i, i + n).join(' ');
             ngrams.set(phrase, (ngrams.get(phrase) || 0) + 1);
         }
-        
-        const sliceLimit = n === 1 ? 20 : 10; // Show more for single words
-        
+
         const sortedNgrams = Array.from(ngrams.entries())
             .sort((a, b) => b[1] - a[1]) // Sort by count descending
-            .slice(0, sliceLimit) // Get top items
+            .slice(0, 10) // Get top items
             .map(([phrase, count]) => ({ phrase, count }));
 
         if (sortedNgrams.length > 0) {
@@ -249,6 +276,7 @@ export const analyzeTextStats = (text: string): TextStatsAnalysis => {
         sentenceLengthVariance,
         sentenceLengthStdDev,
         characterFrequency,
+        wordLengthFrequencies,
         nGramFrequencies,
     };
 };

@@ -42,6 +42,9 @@ export interface TextStatsAnalysis {
   sentenceLengthVariance: number;
   sentenceLengthStdDev: number;
   characterFrequency: { character: string; count: number }[];
+  wordLengthFrequencies: {
+    [syllableCount: number]: NGram[];
+  };
   nGramFrequencies: {
     [n: number]: NGram[];
   };
