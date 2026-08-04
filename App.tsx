@@ -114,7 +114,7 @@ const [poemText, setPoemText] = useState<string>(`ಜನಪನಂಘಿಗೆ �
     }, 500);
   }, [poemText]);
 
-  const handleFileUpload = useCallback(async (file: File) => {
+  const handleFileUpload = useCallback(async (file: File, forceOcr: boolean) => {
     setIsLoading(true);
     setError(null);
     setPoemAnalysis(null);
@@ -123,7 +123,7 @@ const [poemText, setPoemText] = useState<string>(`ಜನಪನಂಘಿಗೆ �
     setProgressMessage('Reading the file…');
 
     try {
-      const text = await parseFile(file, setProgressMessage);
+      const text = await parseFile(file, setProgressMessage, forceOcr);
       setPoemText(text);
     } catch (e) {
       if (e instanceof Error) {
